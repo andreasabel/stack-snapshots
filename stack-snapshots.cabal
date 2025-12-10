@@ -79,3 +79,4 @@ test-suite stack-snapshots-test
         text >=2.0,
         bytestring >=0.11
     hs-source-dirs:   test
+    build-tool-depends: stack-snapshots:stack-snapshots
