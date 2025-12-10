@@ -5,6 +5,8 @@ module CSV
   , loadSnapshotDB
   ) where
 
+import Prelude hiding (lines, min)
+
 import Control.Monad (forM_)
 import Data.List (sort, sortBy, sortOn)
 import Data.List.Split (splitOn)
@@ -56,15 +58,15 @@ generateCSVs :: FilePath -> IO ()
 generateCSVs repoPath = do
   stateDir <- getStateDir
   createDirectoryIfMissing True stateDir
-  
+
   -- Process LTS snapshots
   ltsMap <- processLTSSnapshots (repoPath </> "lts")
   writeLTSCSV (stateDir </> "lts.csv") ltsMap
-  
+
   -- Process nightly snapshots
   nightlyMap <- processNightlySnapshots (repoPath </> "nightly")
   writeNightlyCSV (stateDir </> "nightly.csv") nightlyMap
-  
+
   -- Generate GHC version map
   let ghcMap = generateGHCMap ltsMap nightlyMap
   writeGHCCSV (stateDir </> "ghc.csv") ghcMap
@@ -74,15 +76,14 @@ processLTSSnapshots :: FilePath -> IO [(LTSVersion, GHCVersion)]
 processLTSSnapshots ltsDir = do
   majorDirs <- listDirectory ltsDir
   let sortedMajors = sortOn (\s -> read s :: Int) $ filter (all (`elem` ("0123456789" :: String))) majorDirs
-  results <- mapM (processMajor ltsDir) sortedMajors
-  return $ concat results
+  concat <$> mapM (processMajor ltsDir) sortedMajors
   where
     processMajor dir majorStr = do
       case reads majorStr of
         [(major, "")] -> do
           let majorPath = dir </> majorStr
           minorFiles <- listDirectory majorPath
-          let sortedMinors = sortOn (\s -> read (take (length s - 5) s) :: Int) $ 
+          let sortedMinors = sortOn (\s -> read (take (length s - 5) s) :: Int) $
                              filter (\s -> takeExtension s == ".yaml") minorFiles
           mapM (processMinor majorPath major) sortedMinors
         _ -> return []
@@ -93,9 +94,9 @@ processLTSSnapshots ltsDir = do
             [(minor, "")] -> do
               ghc <- extractGHCVersion (dir </> fname)
               return (LTSVersion major minor, ghc)
-            _ -> error $ "Invalid minor version format in " ++ fname ++ 
+            _ -> error $ "Invalid minor version format in " ++ fname ++
                         ": expected integer, got '" ++ minorStr ++ "'"
-      | otherwise = error $ "Unexpected file in LTS directory: " ++ fname ++ 
+      | otherwise = error $ "Unexpected file in LTS directory: " ++ fname ++
                            " (expected .yaml extension)"
 
 -- | Process nightly snapshots (structure: nightly/year/month/day.yaml)
@@ -103,8 +104,7 @@ processNightlySnapshots :: FilePath -> IO [(NightlyVersion, GHCVersion)]
 processNightlySnapshots nightlyDir = do
   yearDirs <- listDirectory nightlyDir
   let sortedYears = sortOn (\s -> read s :: Int) $ filter (all (`elem` ("0123456789" :: String))) yearDirs
-  results <- mapM (processYear nightlyDir) sortedYears
-  return $ concat results
+  concat <$> mapM (processYear nightlyDir) sortedYears
   where
     processYear dir yearStr = do
       case reads yearStr of
@@ -131,7 +131,7 @@ processNightlySnapshots nightlyDir = do
               ghc <- extractGHCVersion (dir </> fname)
               return (NightlyVersion year month day, ghc)
             _ -> error $ "Invalid day in " ++ fname
-      | otherwise = error $ "Unexpected file in nightly directory: " ++ fname ++ 
+      | otherwise = error $ "Unexpected file in nightly directory: " ++ fname ++
                            " (expected .yaml extension)"
 
 -- | Extract GHC version from a snapshot YAML file
@@ -145,13 +145,13 @@ extractGHCVersion file = do
       case Yaml.parseMaybe (.: "resolver") obj of
         Just (Aeson.Object resolverObj) ->
           case Yaml.parseMaybe (.: "compiler") resolverObj of
-            Just (Aeson.String compiler) -> 
+            Just (Aeson.String compiler) ->
               parseCompiler compiler file
             _ -> error $ "No compiler field in resolver in " ++ file
         _ ->
           -- Try old format (compiler at top level)
           case Yaml.parseMaybe (.: "compiler") obj of
-            Just (Aeson.String compiler) -> 
+            Just (Aeson.String compiler) ->
               parseCompiler compiler file
             _ -> error $ "No compiler field in " ++ file
     _ -> error $ "Invalid YAML in " ++ file
@@ -209,11 +209,11 @@ writeGHCCSV path ghcMap = do
 loadSnapshotDB :: IO SnapshotDB
 loadSnapshotDB = do
   stateDir <- getStateDir
-  
+
   ltsMap <- readLTSCSV (stateDir </> "lts.csv")
   nightlyMap <- readNightlyCSV (stateDir </> "nightly.csv")
   ghcMap <- readGHCCSV (stateDir </> "ghc.csv")
-  
+
   return $ SnapshotDB ltsMap nightlyMap ghcMap
 
 -- | Read LTS CSV file

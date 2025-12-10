@@ -4,7 +4,7 @@ module Commands
   ( runCommand
   ) where
 
-import Control.Monad (forM_, when)
+import Control.Monad (forM_, when, unless)
 import Data.List (sortBy)
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
@@ -43,12 +43,12 @@ runEssentialCommand :: Bool -> Command -> IO ()
 runEssentialCommand useColor cmd = do
   repoPath <- getRepoPath
   ensureRepo repoPath
-  
+
   -- Ensure CSV files exist
   stateDir <- XDG.getStateDir
   csvExists <- doesFileExist (stateDir </> "ghc.csv")
-  when (not csvExists) $ generateCSVs repoPath
-  
+  unless csvExists $ generateCSVs repoPath
+
   case cmd of
     DryRun -> runDryRun useColor
     Bump -> runBump
@@ -89,10 +89,10 @@ runDryRun :: Bool -> IO ()
 runDryRun useColor = do
   db <- loadSnapshotDB
   actions <- analyzeAllStackYamls db
-  
+
   -- Sort actions by filename
   let sortedActions = sortBy (comparing actionFile) actions
-  
+
   forM_ sortedActions $ \action -> do
     printAction useColor action
 
@@ -102,14 +102,14 @@ printAction useColor action = do
   let file = actionFile action
   let oldSnap = actionOldSnapshot action
   let newSnap = actionNewSnapshot action
-  
+
   -- Print with proper alignment (file padded to 20 chars, oldSnap to 25 chars)
   when useColor $ setSGR [SetConsoleIntensity BoldIntensity]
   putStr $ padRight 20 file
   when useColor $ setSGR [Reset]
-  
+
   putStr $ padRight 25 (T.unpack oldSnap)
-  
+
   case newSnap of
     Nothing -> do
       when useColor $ setSGR [SetColor Foreground Vivid Green]
@@ -120,7 +120,7 @@ printAction useColor action = do
       putStr "→ bump to "
       putStr $ T.unpack new
       when useColor $ setSGR [Reset]
-  
+
   putStrLn ""
 
 -- | Pad string to the right
@@ -132,7 +132,7 @@ runBump :: IO ()
 runBump = do
   db <- loadSnapshotDB
   actions <- analyzeAllStackYamls db
-  
+
   forM_ actions $ \action -> do
     case actionNewSnapshot action of
       Nothing -> return ()
@@ -153,7 +153,7 @@ runInfo repoPath = do
   putStrLn $ "repo: " ++ repoPath
   db <- loadSnapshotDB
   putStrLn "snapshots:"
-  
+
   let ghcEntries = Map.toAscList (dbGHC db)
   forM_ ghcEntries $ \(ghc, snapshot) -> do
     putStrLn $ "  " ++ formatGHCVersionText ghc ++ ": " ++ T.unpack (formatSnapshotText snapshot)

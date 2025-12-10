@@ -7,34 +7,33 @@ module Analysis
 
 import Prelude hiding (min, span)
 
+import Data.Functor ((<&>))
 import Data.List (maximumBy)
 import qualified Data.Map.Strict as Map
+import Data.Maybe (catMaybes)
 import Data.Ord (comparing)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Printf (printf)
+
 import Types (Action(..), SnapshotDB(..), LTSVersion(..), NightlyVersion(..), GHCVersion(..), Snapshot(..))
 import StackYaml (parseStackYaml, findStackYamlFiles)
 
 -- | Analyze a single stack.yaml file
 analyzeStackYaml :: SnapshotDB -> FilePath -> IO (Maybe Action)
 analyzeStackYaml db file = do
-  result <- parseStackYaml file
-  case result of
-    Nothing -> return Nothing
+  parseStackYaml file <&> \case
+    Nothing -> Nothing
     Just (oldSnap, isResolver, span) -> do
       let newSnap = determineNewSnapshot db oldSnap
-      return $ Just $ Action file oldSnap newSnap isResolver span
+      Just $ Action file oldSnap newSnap isResolver span
 
 -- | Analyze all stack*.yaml files in the current directory
 analyzeAllStackYamls :: SnapshotDB -> IO [Action]
 analyzeAllStackYamls db = do
   files <- findStackYamlFiles
   results <- mapM (analyzeStackYaml db) files
-  return $ concat $ map maybeToList results
-  where
-    maybeToList Nothing = []
-    maybeToList (Just x) = [x]
+  return $ catMaybes results
 
 -- | Determine the new snapshot for a given old snapshot
 determineNewSnapshot :: SnapshotDB -> Text -> Maybe Text

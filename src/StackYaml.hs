@@ -20,8 +20,7 @@ findStackYamlFiles :: IO [FilePath]
 findStackYamlFiles = do
   files <- listDirectory "."
   let candidates = filter isStackYaml files
-  validFiles <- filterM doesFileExist candidates
-  return $ sort validFiles  -- Sort the result
+  sort <$> filterM doesFileExist candidates
   where
     isStackYaml name =
       let fname = takeFileName name
@@ -40,11 +39,11 @@ parseStackYaml file = do
           case findField "resolver:" s pos of
             Just (value, start, end) -> Just (T.pack value, True, (start, end))
             Nothing -> Nothing
-    
+
     findField :: String -> String -> Int -> Maybe (String, Int, Int)
     findField field s pos =
       findFieldHelper field s pos s
-    
+
     findFieldHelper :: String -> String -> Int -> String -> Maybe (String, Int, Int)
     findFieldHelper field orig pos [] = Nothing
     findFieldHelper field orig pos s@(c:cs)

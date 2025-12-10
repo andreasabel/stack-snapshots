@@ -9,6 +9,7 @@ import System.FilePath (takeDirectory)
 import System.Process (readProcess, callProcess)
 import System.Exit (exitFailure)
 import Control.Exception (catch, SomeException)
+import Control.Monad (unless)
 
 stackageSnapshotsUrl :: String
 stackageSnapshotsUrl = "https://github.com/commercialhaskell/stackage-snapshots"
@@ -17,9 +18,7 @@ stackageSnapshotsUrl = "https://github.com/commercialhaskell/stackage-snapshots"
 ensureRepo :: FilePath -> IO ()
 ensureRepo repoPath = do
   exists <- doesDirectoryExist repoPath
-  if exists
-    then return ()
-    else cloneRepo repoPath
+  unless exists $ cloneRepo repoPath
 
 -- | Clone the stackage-snapshots repository
 cloneRepo :: FilePath -> IO ()
@@ -32,8 +31,7 @@ cloneRepo repoPath = do
 -- | Get the current branch name
 getCurrentBranch :: FilePath -> IO String
 getCurrentBranch repoPath = do
-  result <- readProcess "git" ["-C", repoPath, "rev-parse", "--abbrev-ref", "HEAD"] ""
-  return $ trim result
+  trim <$> readProcess "git" ["-C", repoPath, "rev-parse", "--abbrev-ref", "HEAD"] ""
 
 -- | Update the repository by pulling
 updateRepo :: FilePath -> IO ()
