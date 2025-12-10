@@ -24,7 +24,7 @@ ensureRepo repoPath = do
 cloneRepo :: FilePath -> IO ()
 cloneRepo repoPath = do
   createDirectoryIfMissing True (takeDirectory repoPath)
-  putStrLn $ "Cloning " ++ stackageSnapshotsUrl ++ " to " ++ repoPath ++ "..."
+  putStrLn $ "Downloading repo " ++ stackageSnapshotsUrl ++ " as shallow clone to " ++ repoPath ++ "..."
   callProcess "git" ["clone", "--depth", "1", stackageSnapshotsUrl, repoPath]
   putStrLn "Clone complete."
 

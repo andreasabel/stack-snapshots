@@ -11,12 +11,13 @@ import Types
 
 -- | Parse command-line options
 parseOptions :: IO Options
-parseOptions = execParser opts
+parseOptions = customExecParser (prefs showHelpOnEmpty) opts
   where
     opts = info (optionsParser <**> helper)
       ( fullDesc
-     <> progDesc "Bump snapshots in stack*.yaml files"
-     <> header "stack-snapshots - A tool for managing stack snapshots" )
+     <> progDesc "A tool to bump snapshots (resolvers) in stack*.yaml files"
+     <> header ("stack-snapshots version " ++ appVersion)
+     <> footer "For more information, see the README" )
 
 -- | Options parser
 optionsParser :: Parser Options
@@ -28,14 +29,14 @@ optionsParser = Options
 commandParser :: Parser Command
 commandParser = subparser
   ( command "bump" (info (pure Bump) (progDesc "Update stack*.yaml files"))
- <> command "dry-run" (info (pure DryRun) (progDesc "Show what would be updated"))
+ <> command "dry-run" (info (pure DryRun) (progDesc "Show what would be updated (default)"))
  <> command "update" (info (pure Update) (progDesc "Update stackage snapshots database"))
  <> command "info" (info (pure Info) (progDesc "Print GHC version to snapshot mapping"))
  <> command "config" (info configParser (progDesc "Configure stack-snapshots"))
- <> command "version" (info (pure Version) (progDesc "Print version information"))
- <> command "numeric-version" (info (pure NumericVersion) (progDesc "Print version number"))
- <> command "license" (info (pure PrintLicense) (progDesc "Print license text"))
- <> command "help" (info (pure Help) (progDesc "Print help"))
+ <> command "version" (info (pure Version) (progDesc "Print version information (also: -V, --version)"))
+ <> command "numeric-version" (info (pure NumericVersion) (progDesc "Print version number (also: --numeric-version)"))
+ <> command "license" (info (pure PrintLicense) (progDesc "Print license text (also: --license)"))
+ <> command "help" (info (pure Help) (progDesc "Print this help (also: -h, --help)"))
   )
   <|> flag' Version (long "version" <> short 'V' <> help "Print version information")
   <|> flag' NumericVersion (long "numeric-version" <> help "Print version number")

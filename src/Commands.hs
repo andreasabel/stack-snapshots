@@ -14,6 +14,8 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import System.Console.ANSI
 import System.Directory (makeAbsolute, doesFileExist, createDirectoryIfMissing)
+import System.Environment (withArgs)
+import System.Exit (exitSuccess)
 import System.FilePath (takeDirectory, (</>))
 import Text.Printf (printf)
 import Types
@@ -25,6 +27,7 @@ import StackYaml
 import ColorOption
 import License (licenseText)
 import qualified XDG
+import qualified Options
 
 -- | Run a command
 runCommand :: Options -> IO ()
@@ -34,7 +37,9 @@ runCommand opts = do
     Version -> printVersion
     NumericVersion -> putStrLn appVersion
     PrintLicense -> putStrLn licenseText
-    Help -> printHelp
+    Help -> do
+      -- Re-parse with --help to trigger optparse-applicative's help
+      withArgs ["--help"] Options.parseOptions >> return ()
     Config configCmd -> runConfig configCmd  -- Handle config first!
     cmd -> runEssentialCommand useColor cmd
 
@@ -62,27 +67,12 @@ printVersion = do
   putStrLn $ appName ++ " version " ++ appVersion
   putStrLn copyright
 
--- | Print help
-printHelp :: IO ()
-printHelp = do
-  printVersion
-  putStrLn ""
-  putStrLn "A tool to bump snapshots (resolvers) in stack*.yaml files."
-  putStrLn ""
-  putStrLn "Usage: stack-snapshots [COMMAND] [OPTIONS]"
-  putStrLn ""
-  putStrLn "Commands:"
-  putStrLn "  bump           Update stack*.yaml files"
-  putStrLn "  dry-run        Show what would be updated (default)"
-  putStrLn "  config         Configure stack-snapshots"
-  putStrLn "  update         Update stackage snapshots database"
-  putStrLn "  info           Print GHC version to snapshot mapping"
-  putStrLn "  version        Print version information"
-  putStrLn "  license        Print license text"
-  putStrLn "  help           Print this help"
-  putStrLn ""
-  putStrLn "Options:"
-  putStrLn "  --color WHEN   Use colored output (always, never, auto)"
+-- | Print text with optional color formatting
+withColor :: Bool -> [SGR] -> IO () -> IO ()
+withColor useColor sgr action = do
+  when useColor $ setSGR sgr
+  action
+  when useColor $ setSGR [Reset]
 
 -- | Run dry-run command
 runDryRun :: Bool -> IO ()
@@ -104,22 +94,19 @@ printAction useColor action = do
   let newSnap = actionNewSnapshot action
 
   -- Print with proper alignment (file padded to 20 chars, oldSnap to 25 chars)
-  when useColor $ setSGR [SetConsoleIntensity BoldIntensity]
-  putStr $ padRight 20 file
-  when useColor $ setSGR [Reset]
+  withColor useColor [SetConsoleIntensity BoldIntensity] $
+    putStr $ padRight 20 file
 
   putStr $ padRight 25 (T.unpack oldSnap)
 
   case newSnap of
     Nothing -> do
-      when useColor $ setSGR [SetColor Foreground Vivid Green]
-      putStr "✓ up to date"
-      when useColor $ setSGR [Reset]
+      withColor useColor [SetColor Foreground Vivid Green] $
+        putStr "✓ up to date"
     Just new -> do
-      when useColor $ setSGR [SetColor Foreground Vivid Yellow]
-      putStr "→ bump to "
-      putStr $ T.unpack new
-      when useColor $ setSGR [Reset]
+      withColor useColor [SetColor Foreground Vivid Yellow] $ do
+        putStr "→ bump to "
+        putStr $ T.unpack new
 
   putStrLn ""
 
