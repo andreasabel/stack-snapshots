@@ -6,7 +6,7 @@ module CSV
   ) where
 
 import Control.Monad (forM_)
-import Data.List (sort, sortBy)
+import Data.List (sort, sortBy, sortOn)
 import Data.List.Split (splitOn)
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
@@ -73,7 +73,8 @@ generateCSVs repoPath = do
 processLTSSnapshots :: FilePath -> IO [(LTSVersion, GHCVersion)]
 processLTSSnapshots ltsDir = do
   majorDirs <- listDirectory ltsDir
-  results <- mapM (processMajor ltsDir) majorDirs
+  let sortedMajors = sortOn (\s -> read s :: Int) $ filter (all (`elem` ("0123456789" :: String))) majorDirs
+  results <- mapM (processMajor ltsDir) sortedMajors
   return $ concat results
   where
     processMajor dir majorStr = do
@@ -81,7 +82,9 @@ processLTSSnapshots ltsDir = do
         [(major, "")] -> do
           let majorPath = dir </> majorStr
           minorFiles <- listDirectory majorPath
-          mapM (processMinor majorPath major) minorFiles
+          let sortedMinors = sortOn (\s -> read (take (length s - 5) s) :: Int) $ 
+                             filter (\s -> takeExtension s == ".yaml") minorFiles
+          mapM (processMinor majorPath major) sortedMinors
         _ -> return []
     processMinor dir major fname
       | takeExtension fname == ".yaml" = do
@@ -99,7 +102,8 @@ processLTSSnapshots ltsDir = do
 processNightlySnapshots :: FilePath -> IO [(NightlyVersion, GHCVersion)]
 processNightlySnapshots nightlyDir = do
   yearDirs <- listDirectory nightlyDir
-  results <- mapM (processYear nightlyDir) yearDirs
+  let sortedYears = sortOn (\s -> read s :: Int) $ filter (all (`elem` ("0123456789" :: String))) yearDirs
+  results <- mapM (processYear nightlyDir) sortedYears
   return $ concat results
   where
     processYear dir yearStr = do
@@ -107,7 +111,8 @@ processNightlySnapshots nightlyDir = do
         [(year, "")] -> do
           let yearPath = dir </> yearStr
           monthDirs <- listDirectory yearPath
-          months <- mapM (processMonth yearPath year) monthDirs
+          let sortedMonths = sortOn (\s -> read s :: Int) $ filter (all (`elem` ("0123456789" :: String))) monthDirs
+          months <- mapM (processMonth yearPath year) sortedMonths
           return $ concat months
         _ -> return []
     processMonth dir year monthStr = do
@@ -115,7 +120,9 @@ processNightlySnapshots nightlyDir = do
         [(month, "")] -> do
           let monthPath = dir </> monthStr
           dayFiles <- listDirectory monthPath
-          mapM (processDay monthPath year month) dayFiles
+          let sortedDays = sortOn (\s -> read (take (length s - 5) s) :: Int) $
+                           filter (\s -> takeExtension s == ".yaml") dayFiles
+          mapM (processDay monthPath year month) sortedDays
         _ -> return []
     processDay dir year month fname
       | takeExtension fname == ".yaml" = do
@@ -182,9 +189,9 @@ generateGHCMap ltsEntries nightlyEntries =
   in Map.union ltsMap nightlyMap
   where
     insertLTS (lts, ghc) m =
-      Map.insertWith (\new old -> new) ghc (LTS lts) m
+      Map.insertWith (\_ old -> old) ghc (LTS lts) m
     insertNightly (nightly, ghc) m =
-      Map.insertWith (\new old -> new) ghc (Nightly nightly) m
+      Map.insertWith (\_ old -> old) ghc (Nightly nightly) m
 
 -- | Write GHC CSV file
 writeGHCCSV :: FilePath -> Map GHCVersion Snapshot -> IO ()
