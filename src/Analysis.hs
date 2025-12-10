@@ -5,8 +5,9 @@ module Analysis
   , analyzeAllStackYamls
   ) where
 
+import Prelude hiding (min, span)
+
 import Data.List (maximumBy)
-import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import Data.Ord (comparing)
 import Data.Text (Text)
