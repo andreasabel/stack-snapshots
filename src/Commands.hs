@@ -12,7 +12,6 @@ import Data.Text (Text)
 import Data.Text qualified as T
 import System.Console.ANSI
 import System.Directory (makeAbsolute)
-import System.FilePath ((</>))
 import Text.Printf (printf)
 import Types
 import Config
