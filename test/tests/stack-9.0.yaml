@@ -1,4 +1,4 @@
-snapshot: nightly-2021-12-04
+snapshot: lts-19.33
 compiler: 9.0.2
 compiler-check: match-exact
 

@@ -4,14 +4,14 @@ module Commands
   ( runCommand
   ) where
 
-import Control.Monad (forM_, when, unless)
+import Control.Monad (forM_, when)
 import Data.List (sortBy)
 import Data.Map.Strict qualified as Map
 import Data.Ord (comparing)
 import Data.Text (Text)
 import Data.Text qualified as T
 import System.Console.ANSI
-import System.Directory (makeAbsolute, doesFileExist)
+import System.Directory (makeAbsolute)
 import System.FilePath ((</>))
 import Text.Printf (printf)
 import Types
@@ -64,22 +64,24 @@ runCommand opts = do
     Config configCmd -> runConfig configCmd  -- Handle config first!
     cmd -> runEssentialCommand useColor cmd
 
--- | Run an essential command (requires repo setup)
+-- | Run an essential command (requires CSV files)
 runEssentialCommand :: Bool -> Command -> IO ()
 runEssentialCommand useColor cmd = do
-  repoPath <- getRepoPath
-  ensureRepo repoPath
-
-  -- Ensure CSV files exist
-  stateDir <- XDG.getStateDir
-  csvExists <- doesFileExist (stateDir </> "ghc.csv")
-  unless csvExists $ generateCSVs repoPath
+  -- Ensure CSV files exist (copy from data dir if needed)
+  ensureCSVFiles
 
   case cmd of
     DryRun -> runDryRun useColor
     Bump -> runBump
-    Update -> runUpdate repoPath
-    Info -> runInfo repoPath
+    Update -> do
+      -- Only for Update command, ensure repo exists and update it
+      repoPath <- getRepoPath
+      ensureRepo repoPath
+      runUpdate repoPath
+    Info -> do
+      -- Info command shows the repo path
+      repoPath <- getRepoPath
+      runInfo repoPath
     _ -> return ()
 
 -- | Print version information

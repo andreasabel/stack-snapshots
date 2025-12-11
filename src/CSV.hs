@@ -3,10 +3,12 @@
 module CSV
   ( generateCSVs
   , loadSnapshotDB
+  , ensureCSVFiles
   ) where
 
 import Prelude hiding (lines, min)
 
+import Control.Monad (unless)
 import Data.List (sortBy, sortOn)
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
@@ -23,6 +25,8 @@ import Text.Printf (printf)
 import Types (LTSVersion(..), NightlyVersion(..), GHCVersion(..), Snapshot(..), SnapshotDB(..))
 import XDG (getStateDir)
 import System.IO (stderr)
+import Paths_stack_snapshots (getDataDir)
+import System.Directory qualified as Dir
 
 -- Helper functions for parsing
 parseGHCVersionText :: Text -> Maybe GHCVersion
@@ -51,6 +55,26 @@ formatGHCVersion (GHCVersion maj1 maj2 minV) =
 formatNightlyVersion :: NightlyVersion -> Text
 formatNightlyVersion (NightlyVersion year month day) =
   T.pack $ printf "%d-%02d-%02d" year month day
+
+-- | Ensure CSV files exist in state directory, copying from data directory if needed
+ensureCSVFiles :: IO ()
+ensureCSVFiles = do
+  stateDir <- getStateDir
+  createDirectoryIfMissing True stateDir
+  
+  dataDir <- getDataDir
+  
+  -- Check if any CSV file is missing
+  ghcExists <- doesFileExist (stateDir </> "ghc.csv")
+  ltsExists <- doesFileExist (stateDir </> "lts.csv")
+  nightlyExists <- doesFileExist (stateDir </> "nightly.csv")
+  
+  unless (ghcExists && ltsExists && nightlyExists) $ do
+    TIO.hPutStrLn stderr "Copying CSV files from data directory..."
+    -- Copy all three CSV files from data directory
+    Dir.copyFile (dataDir </> "ghc.csv") (stateDir </> "ghc.csv")
+    Dir.copyFile (dataDir </> "lts.csv") (stateDir </> "lts.csv")
+    Dir.copyFile (dataDir </> "nightly.csv") (stateDir </> "nightly.csv")
 
 -- | Generate CSV files from the stackage-snapshots repository
 generateCSVs :: FilePath -> IO ()
