@@ -21,6 +21,10 @@ data-files:
     lts.csv
     nightly.csv
 
+source-repository head
+    type: git
+    location: https://github.com/andreasabel/stack-snapshots.git
+
 common warnings
     ghc-options:
         -Wall
@@ -50,6 +54,8 @@ executable stack-snapshots
         Commands
         XDG
         Types
+        Paths_stack_snapshots
+    autogen-modules:
         Paths_stack_snapshots
     build-depends:
         base >=4.16 && <5,
