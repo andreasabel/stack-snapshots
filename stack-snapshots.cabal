@@ -13,6 +13,13 @@ maintainer:         andreas.abel@gu.se
 category:           Development
 build-type:         Simple
 
+tested-with:
+  GHC == 9.4.8
+  GHC == 9.6.7
+  GHC == 9.8.4
+  GHC == 9.10.3
+  GHC == 9.12.2
+
 extra-doc-files:    README.md
 
 data-dir:           data
@@ -29,6 +36,8 @@ common warnings
     ghc-options:
         -Wall
         -Wcompat
+        -Wunused-packages
+        -Wincomplete-patterns
     default-language:
         Haskell2010
     default-extensions:
@@ -58,20 +67,17 @@ executable stack-snapshots
     autogen-modules:
         Paths_stack_snapshots
     build-depends:
-        base >=4.16 && <5,
-        directory >=1.3,
+        base >=4.17 && <5,
+        directory >=1.3.7.0,
+          -- XdgState requires directory-1.3.7.0 or higher
         filepath >=1.4,
         process >=1.6,
         text >=2.0,
-        bytestring >=0.11,
         yaml >=0.11,
         aeson >=2.0,
         containers >=0.6,
         optparse-applicative >=0.17,
         ansi-terminal >=0.11,
-        time >=1.11,
-        mtl >=2.2,
-        split >=0.2,
         file-embed >=0.0.15
     hs-source-dirs:   src
 
@@ -83,10 +89,10 @@ test-suite stack-snapshots-test
         TestDryRun
         TestBump
     build-depends:
-        base >=4.16 && <5,
+        base >=4.17 && <5,
         tasty >=1.4,
         tasty-golden >=2.3,
-        directory >=1.3,
+        directory >=1.3.7.0,
         filepath >=1.4,
         process >=1.6,
         text >=2.0,
