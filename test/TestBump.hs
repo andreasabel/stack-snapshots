@@ -7,7 +7,7 @@ import System.Process (callProcess)
 import System.Directory (listDirectory, copyFile, setCurrentDirectory, getCurrentDirectory)
 import System.IO.Temp (createTempDirectory, getCanonicalTemporaryDirectory)
 import Control.Monad (forM_)
-import Data.List (isSuffixOf, sort)
+import Data.List (isSuffixOf, sort, isPrefixOf)
 
 -- | Generate bump tests - all files are bumped in one temp directory
 bumpTestsIO :: IO [TestTree]
@@ -33,10 +33,6 @@ bumpTestsIO = do
   -- Create a golden test for each file
   return $ map (makeGoldenTest tempDir) stackYamlFiles
   where
-    isPrefixOf = isPrefixOf'
-    isPrefixOf' [] _ = True
-    isPrefixOf' _ [] = False
-    isPrefixOf' (x:xs) (y:ys) = x == y && isPrefixOf' xs ys
 
     makeGoldenTest tempDir file = goldenVsFileDiff
       ("bump " ++ file)
