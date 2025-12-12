@@ -2,7 +2,7 @@ module TestBump (bumpTestsIO) where
 
 import Test.Tasty ( TestTree )
 import Test.Tasty.Golden ( goldenVsFileDiff )
-import System.FilePath ((</>))
+import System.FilePath ((</>), takeFileName)
 import System.Process (callProcess)
 import System.Directory (listDirectory, copyFile, setCurrentDirectory, getCurrentDirectory)
 import System.IO.Temp (createTempDirectory, getCanonicalTemporaryDirectory)
@@ -17,8 +17,13 @@ bumpTestsIO = do
   tempDir <- createTempDirectory sysTempDir "stack-snapshots-test"
 
   -- Find all stack*.yaml files
+  -- Note: This filter is also in StackYaml.isStackYaml but we duplicate it here
+  -- to keep the test suite independent from internal modules
   allFiles <- listDirectory "test/tests"
-  let stackYamlFiles = sort $ filter (\f -> "stack" `isPrefixOf` f && ".yaml" `isSuffixOf` f) allFiles
+  let stackYamlFiles = sort $ filter isStackYaml allFiles
+      isStackYaml name =
+        let fname = takeFileName name
+        in "stack" `isPrefixOf` fname && ".yaml" `isSuffixOf` fname
 
   -- Copy all files to temp directory
   forM_ stackYamlFiles $ \file -> do

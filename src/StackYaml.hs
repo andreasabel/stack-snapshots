@@ -4,6 +4,7 @@ module StackYaml
   ( findStackYamlFiles
   , parseStackYaml
   , applyAction
+  , isStackYaml
   ) where
 
 import Control.Monad (filterM)
@@ -15,16 +16,18 @@ import System.Directory (listDirectory, doesFileExist)
 import System.FilePath (takeFileName)
 import Types (Action(..))
 
+-- | Check if a filename is a stack*.yaml file
+isStackYaml :: FilePath -> Bool
+isStackYaml name =
+  let fname = takeFileName name
+  in "stack" `isPrefixOf` fname && ".yaml" `isSuffixOf` fname
+
 -- | Find all stack*.yaml files in the current directory
 findStackYamlFiles :: IO [FilePath]
 findStackYamlFiles = do
   files <- listDirectory "."
   let candidates = filter isStackYaml files
   sort <$> filterM doesFileExist candidates
-  where
-    isStackYaml name =
-      let fname = takeFileName name
-      in "stack" `isPrefixOf` fname && ".yaml" `isSuffixOf` fname
 
 -- | Parse a stack.yaml file to extract the snapshot field
 parseStackYaml :: FilePath -> IO (Maybe (Text, Bool, (Int, Int)))
