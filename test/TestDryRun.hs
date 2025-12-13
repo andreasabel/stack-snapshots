@@ -10,9 +10,8 @@ import Data.Text.Encoding qualified as TE
 
 dryRunTests :: [TestTree]
 dryRunTests =
-  [ goldenVsStringDiff
+  [ goldenVsString
       "dry-run output"
-      (\ref new -> ["diff", "-u", ref, new])
       "test/golden/dry-run.txt"
       runDryRunTest
   ]
