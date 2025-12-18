@@ -5,15 +5,18 @@ module StackYaml
   , parseStackYaml
   , applyAction
   , isStackYaml
+  , getSymlinkMap
   ) where
 
 import Control.Monad (filterM)
 import Data.List (isPrefixOf, isSuffixOf, sort)
+import Data.Map.Strict qualified as Map
+import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.IO qualified as TIO
-import System.Directory (listDirectory, doesFileExist)
-import System.FilePath (takeFileName)
+import System.Directory (listDirectory, doesFileExist, pathIsSymbolicLink, getSymbolicLinkTarget)
+import System.FilePath (takeFileName, normalise, makeRelative)
 import Types (Action(..))
 
 -- | Check if a filename is a stack*.yaml file
@@ -28,6 +31,28 @@ findStackYamlFiles = do
   files <- listDirectory "."
   let candidates = filter isStackYaml files
   sort <$> filterM doesFileExist candidates
+
+-- | Get a map of symlinks to their targets (only for symlinks pointing to other stack*.yaml files in the list)
+getSymlinkMap :: [FilePath] -> IO (Map.Map FilePath FilePath)
+getSymlinkMap files = do
+  -- Find symlinks in the list
+  symlinks <- filterM pathIsSymbolicLink files
+  
+  -- For each symlink, check if it points to another file in the list
+  results <- mapM checkSymlink symlinks
+  
+  return $ Map.fromList $ catMaybes results
+  where
+    checkSymlink :: FilePath -> IO (Maybe (FilePath, FilePath))
+    checkSymlink link = do
+      target <- getSymbolicLinkTarget link
+      -- Normalize the target path to handle relative paths
+      let normalizedTarget = normalise target
+      let relativeTarget = makeRelative "." normalizedTarget
+      -- Check if the target is in our file list
+      if relativeTarget `elem` files
+        then return $ Just (link, relativeTarget)
+        else return Nothing
 
 -- | Parse a stack.yaml file to extract the snapshot field
 parseStackYaml :: FilePath -> IO (Maybe (Text, Bool, (Int, Int)))

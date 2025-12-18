@@ -41,6 +41,7 @@ data Action = Action
   , actionNewSnapshot :: Maybe Text
   , actionIsResolver :: Bool  -- True if 'resolver' field, False if 'snapshot'
   , actionSpan :: (Int, Int)  -- Character span to replace
+  , actionSymlinkTarget :: Maybe FilePath  -- Just target if this is a symlink to another stack*.yaml in the list
   } deriving (Eq, Show, Generic)
 
 -- | Database of snapshots

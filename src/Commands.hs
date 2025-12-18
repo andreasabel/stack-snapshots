@@ -114,6 +114,7 @@ printAction useColor action = do
   let file = actionFile action
   let oldSnap = actionOldSnapshot action
   let newSnap = actionNewSnapshot action
+  let symlinkTarget = actionSymlinkTarget action
 
   -- Print with proper alignment (file padded to 20 chars, oldSnap to 25 chars)
   withColor useColor [SetConsoleIntensity BoldIntensity] $
@@ -121,14 +122,21 @@ printAction useColor action = do
 
   putStr $ padRight 25 (T.unpack oldSnap)
 
-  case newSnap of
-    Nothing -> do
-      withColor useColor [SetColor Foreground Vivid Green] $
-        putStr "✓ up to date"
-    Just new -> do
-      withColor useColor [SetColor Foreground Vivid Yellow] $ do
-        putStr "→ bump to "
-        putStr $ T.unpack new
+  case symlinkTarget of
+    Just target -> do
+      -- This is a symlink to another stack*.yaml file
+      withColor useColor [SetColor Foreground Vivid Blue] $ do
+        putStr "= symlink to "
+        putStr target
+    Nothing ->
+      case newSnap of
+        Nothing -> do
+          withColor useColor [SetColor Foreground Vivid Green] $
+            putStr "✓ up to date"
+        Just new -> do
+          withColor useColor [SetColor Foreground Vivid Yellow] $ do
+            putStr "→ bump to "
+            putStr $ T.unpack new
 
   putStrLn ""
 
@@ -143,11 +151,15 @@ runBump = do
   actions <- analyzeAllStackYamls db
 
   forM_ actions $ \action -> do
-    case actionNewSnapshot action of
-      Nothing -> return ()
-      Just _ -> do
-        putStrLn $ "Updating " ++ actionFile action
-        applyAction action
+    -- Skip symlinks that point to other stack*.yaml files in the list
+    case actionSymlinkTarget action of
+      Just _ -> return ()  -- Skip symlinks
+      Nothing ->
+        case actionNewSnapshot action of
+          Nothing -> return ()
+          Just _ -> do
+            putStrLn $ "Updating " ++ actionFile action
+            applyAction action
 
 -- | Run update command
 runUpdate :: FilePath -> IO ()

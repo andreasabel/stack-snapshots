@@ -17,22 +17,26 @@ import Data.Text qualified as T
 import Text.Printf (printf)
 
 import Types (Action(..), SnapshotDB(..), LTSVersion(..), NightlyVersion(..), GHCVersion(..), Snapshot(..))
-import StackYaml (parseStackYaml, findStackYamlFiles)
+import StackYaml (parseStackYaml, findStackYamlFiles, getSymlinkMap)
 
 -- | Analyze a single stack.yaml file
-analyzeStackYaml :: SnapshotDB -> FilePath -> IO (Maybe Action)
-analyzeStackYaml db file = do
+analyzeStackYaml :: SnapshotDB -> Map.Map FilePath FilePath -> FilePath -> IO (Maybe Action)
+analyzeStackYaml db symlinkMap file = do
+  -- Check if this file is a symlink to another stack*.yaml file in our list
+  let symlinkTarget = Map.lookup file symlinkMap
+  
   parseStackYaml file <&> \case
     Nothing -> Nothing
     Just (oldSnap, isResolver, span) -> do
       let newSnap = determineNewSnapshot db oldSnap
-      Just $ Action file oldSnap newSnap isResolver span
+      Just $ Action file oldSnap newSnap isResolver span symlinkTarget
 
 -- | Analyze all stack*.yaml files in the current directory
 analyzeAllStackYamls :: SnapshotDB -> IO [Action]
 analyzeAllStackYamls db = do
   files <- findStackYamlFiles
-  results <- mapM (analyzeStackYaml db) files
+  symlinkMap <- getSymlinkMap files
+  results <- mapM (analyzeStackYaml db symlinkMap) files
   return $ catMaybes results
 
 -- | Determine the new snapshot for a given old snapshot
