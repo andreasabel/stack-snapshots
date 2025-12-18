@@ -125,7 +125,7 @@ printAction useColor action = do
   case symlinkTarget of
     Just target -> do
       -- This is a symlink to another stack*.yaml file
-      withColor useColor [SetColor Foreground Vivid Blue] $ do
+      withColor useColor [SetColor Foreground Dull White] $ do
         putStr "= symlink to "
         putStr target
     Nothing ->
