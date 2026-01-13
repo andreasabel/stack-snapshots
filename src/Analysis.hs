@@ -34,12 +34,10 @@ analyzeStackYaml db symlinkMap file = do
 
 -- | Analyze specific stack*.yaml files, or all if empty list
 analyzeStackYamls :: SnapshotDB -> [FilePath] -> IO [Action]
-analyzeStackYamls db [] = do
-  files <- findStackYamlFiles
-  analyzeStackYamls db files
 analyzeStackYamls db files = do
-  symlinkMap <- getSymlinkMap files
-  results <- mapM (analyzeStackYaml db symlinkMap) files
+  filesToAnalyze <- if null files then findStackYamlFiles else return files
+  symlinkMap <- getSymlinkMap filesToAnalyze
+  results <- mapM (analyzeStackYaml db symlinkMap) filesToAnalyze
   return $ catMaybes results
 
 -- | Analyze all stack*.yaml files in the current directory
