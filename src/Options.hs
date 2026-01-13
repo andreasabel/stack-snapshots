@@ -31,17 +31,13 @@ optionsParserInfo = info (optionsParser <**> helper)
 -- Precedence: Subcommand parsers take priority, so "stacker dry-run --color=never"
 -- will be parsed by the subcommand parser, not the top-level parser.
 optionsParser :: Parser Options
-optionsParser = 
-  -- Try to parse as subcommand with options first
-  subcommandWithOptions
-  -- Fall back to top-level options
-  <|> topLevelOptions
+optionsParser = subcommandWithOptions <|> topLevelOptions
   where
-    -- Helper to combine a command parser with the color option
+    -- Helper to combine a command parser with the color option, creating an Options value
     withColorOption :: Parser Command -> Parser Options
     withColorOption cmdParser = Options <$> cmdParser <*> colorOption
     
-    -- Subcommands that include color option
+    -- Subcommand parser that includes color options for each command
     subcommandWithOptions = subparser
       ( command "bump" (info (withColorOption bumpParser) (progDesc "Update stack*.yaml files (optionally specify files)"))
      <> command "dry-run" (info (withColorOption dryRunParser) (progDesc "Show what would be updated (default, optionally specify files)"))
@@ -54,7 +50,7 @@ optionsParser =
      <> command "help" (info (withColorOption (pure Help)) (progDesc "Print this help (also: -h, --help)"))
       )
     
-    -- Top level parsing (for flags and default)
+    -- Top-level parser for version/help flags and default command when no subcommand is specified
     topLevelOptions = Options
       <$> commandParserTopLevel
       <*> colorOption
