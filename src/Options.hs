@@ -59,7 +59,7 @@ repoParser = SetRepo <$> argument str (metavar "PATH")
 
 -- | Helper to parse file arguments
 filesParser :: ([FilePath] -> Command) -> Parser Command
-filesParser cmd = cmd <$> many (argument str (metavar "FILES..."))
+filesParser cmd = cmd <$> many (argument str (metavar "FILES..." <> action "file"))
 
 -- | Bump command parser
 bumpParser :: Parser Command
