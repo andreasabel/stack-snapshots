@@ -3,6 +3,7 @@
 module Analysis
   ( analyzeStackYaml
   , analyzeAllStackYamls
+  , analyzeStackYamls
   ) where
 
 import Prelude hiding (min, span)
@@ -35,6 +36,14 @@ analyzeStackYaml db symlinkMap file = do
 analyzeAllStackYamls :: SnapshotDB -> IO [Action]
 analyzeAllStackYamls db = do
   files <- findStackYamlFiles
+  symlinkMap <- getSymlinkMap files
+  results <- mapM (analyzeStackYaml db symlinkMap) files
+  return $ catMaybes results
+
+-- | Analyze specific stack*.yaml files, or all if empty list
+analyzeStackYamls :: SnapshotDB -> [FilePath] -> IO [Action]
+analyzeStackYamls db [] = analyzeAllStackYamls db
+analyzeStackYamls db files = do
   symlinkMap <- getSymlinkMap files
   results <- mapM (analyzeStackYaml db symlinkMap) files
   return $ catMaybes results

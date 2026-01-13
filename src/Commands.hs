@@ -49,8 +49,8 @@ runCommand opts = do
       putStrLn "  --color WHEN             Use colored output (always, never, auto)"
       putStrLn ""
       putStrLn "Available commands:"
-      putStrLn "  bump                     Update stack*.yaml files"
-      putStrLn "  dry-run                  Show what would be updated (default)"
+      putStrLn "  bump [FILES...]          Update stack*.yaml files (all if no files specified)"
+      putStrLn "  dry-run [FILES...]       Show what would be updated (default, all if no files specified)"
       putStrLn "  update                   Update stackage snapshots database"
       putStrLn "  info                     Print GHC version to snapshot mapping"
       putStrLn "  config                   Configure stacker"
@@ -70,8 +70,8 @@ runEssentialCommand useColor cmd = do
   ensureCSVFiles
 
   case cmd of
-    DryRun -> runDryRun useColor
-    Bump -> runBump
+    DryRun files -> runDryRun useColor files
+    Bump files -> runBump files
     Update -> do
       -- Only for Update command, ensure repo exists and update it
       repoPath <- getRepoPath
@@ -97,10 +97,10 @@ withColor useColor sgr action = do
   when useColor $ setSGR [Reset]
 
 -- | Run dry-run command
-runDryRun :: Bool -> IO ()
-runDryRun useColor = do
+runDryRun :: Bool -> [FilePath] -> IO ()
+runDryRun useColor files = do
   db <- loadSnapshotDB
-  actions <- analyzeAllStackYamls db
+  actions <- analyzeStackYamls db files
 
   -- Sort actions by filename
   let sortedActions = sortBy (comparing actionFile) actions
@@ -145,10 +145,10 @@ padRight :: Int -> String -> String
 padRight n s = take n (s ++ repeat ' ')
 
 -- | Run bump command
-runBump :: IO ()
-runBump = do
+runBump :: [FilePath] -> IO ()
+runBump files = do
   db <- loadSnapshotDB
-  actions <- analyzeAllStackYamls db
+  actions <- analyzeStackYamls db files
   mapM_ (applyAction True) actions
 
 -- | Run update command

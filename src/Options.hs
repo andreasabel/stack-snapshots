@@ -31,8 +31,8 @@ optionsParser = Options
 -- | Command parser
 commandParser :: Parser Command
 commandParser = subparser
-  ( command "bump" (info (pure Bump) (progDesc "Update stack*.yaml files"))
- <> command "dry-run" (info (pure DryRun) (progDesc "Show what would be updated (default)"))
+  ( command "bump" (info bumpParser (progDesc "Update stack*.yaml files (optionally specify files)"))
+ <> command "dry-run" (info dryRunParser (progDesc "Show what would be updated (default, optionally specify files)"))
  <> command "update" (info (pure Update) (progDesc "Update stackage snapshots database"))
  <> command "info" (info (pure Info) (progDesc "Print GHC version to snapshot mapping"))
  <> command "config" (info configParser (progDesc "Configure stacker"))
@@ -45,7 +45,7 @@ commandParser = subparser
   <|> flag' NumericVersion (long "numeric-version" <> help "Print version number")
   <|> flag' PrintLicense (long "license" <> help "Print license text")
   <|> flag' Help (long "help" <> short 'h' <> help "Print help")
-  <|> pure DryRun
+  <|> pure (DryRun [])
 
 -- | Config command parser
 configParser :: Parser Command
@@ -56,6 +56,14 @@ configParser = Config <$> subparser
 -- | Repo config parser
 repoParser :: Parser ConfigCmd
 repoParser = SetRepo <$> argument str (metavar "PATH")
+
+-- | Bump command parser
+bumpParser :: Parser Command
+bumpParser = Bump <$> many (argument str (metavar "FILES..."))
+
+-- | Dry-run command parser
+dryRunParser :: Parser Command
+dryRunParser = DryRun <$> many (argument str (metavar "FILES..."))
 
 -- | Color option parser
 colorOption :: Parser ColorWhen

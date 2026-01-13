@@ -58,8 +58,8 @@ data AppConfig = AppConfig
 
 -- | Command-line command
 data Command
-  = Bump
-  | DryRun
+  = Bump [FilePath]  -- Optional list of files to bump
+  | DryRun [FilePath]  -- Optional list of files to check
   | Config ConfigCmd
   | Update
   | Info
