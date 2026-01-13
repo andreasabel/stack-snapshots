@@ -12,8 +12,7 @@ import Text.Printf (printf)
 import StackYaml (findStackYamlFiles, getSymlinkMap)
 import Analysis (analyzeStackYaml)
 import CSV (loadSnapshotDB, ensureCSVFiles)
-import Types (Action(..), Snapshot(..))
-import Data.Map.Strict qualified as Map
+import Types (Action(..))
 
 dryRunTests :: [TestTree]
 dryRunTests =

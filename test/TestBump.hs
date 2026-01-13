@@ -3,13 +3,12 @@ module TestBump (bumpTestsIO) where
 import Test.Tasty ( TestTree )
 import Test.Tasty.Golden ( goldenVsFileDiff )
 import System.FilePath ((</>))
-import System.Directory (listDirectory, copyFile, setCurrentDirectory, getCurrentDirectory)
+import System.Directory (copyFile, setCurrentDirectory, getCurrentDirectory)
 import System.IO.Temp (createTempDirectory, getCanonicalTemporaryDirectory)
 import Control.Monad (forM_)
-import Data.List (sort)
 
 -- Import from library
-import StackYaml (isStackYaml, findStackYamlFiles, getSymlinkMap, applyAction)
+import StackYaml (findStackYamlFiles, getSymlinkMap, applyAction)
 import Analysis (analyzeStackYaml)
 import CSV (loadSnapshotDB, ensureCSVFiles)
 import Data.Map.Strict qualified as Map
