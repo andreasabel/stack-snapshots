@@ -21,19 +21,17 @@ dryRunTests =
   ]
 
 runDryRunTest :: IO BSL.ByteString
-runDryRunTest = do
-  cwd <- getCurrentDirectory
-  setCurrentDirectory "test/tests"
-  output <- readProcess "stacker" ["dry-run", "--color=never"] ""
-  setCurrentDirectory cwd
-  -- Properly encode as UTF-8
-  return $ BSL.fromStrict $ TE.encodeUtf8 $ T.pack output
+runDryRunTest = runDryRun ["dry-run", "--color=never"]
 
 runDryRunWithFilesTest :: IO BSL.ByteString
-runDryRunWithFilesTest = do
+runDryRunWithFilesTest = runDryRun ["dry-run", "--color=never", "stack-9.6.yaml", "stack-9.8.yaml"]
+
+-- | Helper to run dry-run with specified arguments
+runDryRun :: [String] -> IO BSL.ByteString
+runDryRun args = do
   cwd <- getCurrentDirectory
   setCurrentDirectory "test/tests"
-  output <- readProcess "stacker" ["dry-run", "--color=never", "stack-9.6.yaml", "stack-9.8.yaml"] ""
+  output <- readProcess "stacker" args ""
   setCurrentDirectory cwd
   -- Properly encode as UTF-8
   return $ BSL.fromStrict $ TE.encodeUtf8 $ T.pack output
