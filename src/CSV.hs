@@ -25,7 +25,7 @@ import Text.Printf (printf)
 import Types (LTSVersion(..), NightlyVersion(..), GHCVersion(..), Snapshot(..), SnapshotDB(..))
 import XDG (getStateDir)
 import System.IO (stderr)
-import Paths_stack_snapshots (getDataDir)
+import Paths_stacker (getDataDir)
 import System.Directory qualified as Dir
 
 -- Helper functions for parsing

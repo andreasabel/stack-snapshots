@@ -19,7 +19,7 @@ optionsParserInfo :: ParserInfo Options
 optionsParserInfo = info (optionsParser <**> helper)
   ( fullDesc
  <> progDesc "A tool to bump snapshots (resolvers) in stack*.yaml files"
- <> header ("stack-snapshots version " ++ appVersion)
+ <> header ("stacker version " ++ appVersion)
  <> footer "For more information, see the README" )
 
 -- | Options parser
@@ -35,7 +35,7 @@ commandParser = subparser
  <> command "dry-run" (info (pure DryRun) (progDesc "Show what would be updated (default)"))
  <> command "update" (info (pure Update) (progDesc "Update stackage snapshots database"))
  <> command "info" (info (pure Info) (progDesc "Print GHC version to snapshot mapping"))
- <> command "config" (info configParser (progDesc "Configure stack-snapshots"))
+ <> command "config" (info configParser (progDesc "Configure stacker"))
  <> command "version" (info (pure Version) (progDesc "Print version information (also: -V, --version)"))
  <> command "numeric-version" (info (pure NumericVersion) (progDesc "Print version number (also: --numeric-version)"))
  <> command "license" (info (pure PrintLicense) (progDesc "Print license text (also: --license)"))

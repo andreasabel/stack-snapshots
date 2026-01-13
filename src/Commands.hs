@@ -34,10 +34,10 @@ runCommand opts = do
     Help -> do
       -- Manually render help text
       -- While not ideal, this ensures help works. The structure mirrors optparse-applicative's output.
-      putStrLn $ "stack-snapshots version " ++ appVersion
+      putStrLn $ "stacker version " ++ appVersion
       putStrLn ""
-      putStrLn "Usage: stack-snapshots [COMMAND | (-V|--version) | --numeric-version |"
-      putStrLn "                         --license | (-h|--help)] [--color WHEN]"
+      putStrLn "Usage: stacker [COMMAND | (-V|--version) | --numeric-version |"
+      putStrLn "                --license | (-h|--help)] [--color WHEN]"
       putStrLn ""
       putStrLn "  A tool to bump snapshots (resolvers) in stack*.yaml files"
       putStrLn ""
@@ -53,7 +53,7 @@ runCommand opts = do
       putStrLn "  dry-run                  Show what would be updated (default)"
       putStrLn "  update                   Update stackage snapshots database"
       putStrLn "  info                     Print GHC version to snapshot mapping"
-      putStrLn "  config                   Configure stack-snapshots"
+      putStrLn "  config                   Configure stacker"
       putStrLn "  version                  Print version information (also: -V, --version)"
       putStrLn "  numeric-version          Print version number (also: --numeric-version)"
       putStrLn "  license                  Print license text (also: --license)"
