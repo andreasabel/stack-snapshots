@@ -31,8 +31,8 @@ inspects the value of the `snapshot:` (or `resolver:`) field and upgrades it in 
 
 | Command           | Description                                                                         |
 |-------------------|-------------------------------------------------------------------------------------|
-| `bump`            | Updates `stack*.yaml` as described above                                            |
-| `dry-run`         | Only describes the updates `bump` would perform (default if no command is given)    |
+| `bump [FILES...]` | Updates `stack*.yaml` files (all if no files specified)                            |
+| `dry-run [FILES...]` | Only describes the updates `bump` would perform (default if no command is given, all files if no files specified) |
 | `config`          | Configures `stack-snaphots`                                                         |
 | `update`          | Updates its database of stackage snapshots                                          |
 | `info`            | Prints table mapping GHC major versions to their latest snapshots                   |
@@ -109,6 +109,12 @@ These data files determine the results of `bump` (and its preview by `dry-run`).
 ## `bump` command
 
 `stack-snapshots bump` looks for all `stack*.yaml` files in the current directory and updates them as described above.
+
+Alternatively, you can specify specific files to bump:
+```
+stack-snapshots bump stack-9.6.yaml stack-9.8.yaml
+```
+
 Only the content of the `snapshot:` and `resolver:` fields will be updated,
 everything else will remain literally the same, including comments and whitespace.
 
@@ -117,7 +123,13 @@ everything else will remain literally the same, including comments and whitespac
 This command is also run if no command is given to `stack-snapshots`.
 It prints a table with all `stack*.yaml` files in the current directory,
 their `snapshot` (which can also be given in the `resolver` field), and what action to take (if any).
-Example:
+
+Alternatively, you can specify specific files to check:
+```
+stack-snapshots dry-run stack-9.6.yaml stack-9.8.yaml
+```
+
+Example output:
 ```
 stack-9.2.yaml    lts-20.26            ✓ up to date
 stack-9.4.yaml    lts-21.25            ✓ up to date
