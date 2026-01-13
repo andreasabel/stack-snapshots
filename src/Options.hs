@@ -23,6 +23,11 @@ optionsParserInfo = info (optionsParser <**> helper)
  <> footer "For more information, see the README" )
 
 -- | Options parser
+-- The parser tries subcommand parsing first (which includes color options),
+-- then falls back to top-level options (for version/help flags and default).
+-- This allows --color to be specified either before the subcommand
+-- (e.g., "stacker --color=never dry-run") or within the subcommand
+-- (e.g., "stacker dry-run --color=never file.yaml").
 optionsParser :: Parser Options
 optionsParser = 
   -- Try to parse as subcommand with options first
@@ -32,15 +37,15 @@ optionsParser =
   where
     -- Subcommands that include color option
     subcommandWithOptions = subparser
-      ( command "bump" (info (Options <$> bumpParser <*> colorOptionLocal) (progDesc "Update stack*.yaml files (optionally specify files)"))
-     <> command "dry-run" (info (Options <$> dryRunParser <*> colorOptionLocal) (progDesc "Show what would be updated (default, optionally specify files)"))
-     <> command "update" (info (Options <$> pure Update <*> colorOptionLocal) (progDesc "Update stackage snapshots database"))
-     <> command "info" (info (Options <$> pure Info <*> colorOptionLocal) (progDesc "Print GHC version to snapshot mapping"))
-     <> command "config" (info (Options <$> configParser <*> colorOptionLocal) (progDesc "Configure stacker"))
-     <> command "version" (info (Options <$> pure Version <*> colorOptionLocal) (progDesc "Print version information (also: -V, --version)"))
-     <> command "numeric-version" (info (Options <$> pure NumericVersion <*> colorOptionLocal) (progDesc "Print version number (also: --numeric-version)"))
-     <> command "license" (info (Options <$> pure PrintLicense <*> colorOptionLocal) (progDesc "Print license text (also: --license)"))
-     <> command "help" (info (Options <$> pure Help <*> colorOptionLocal) (progDesc "Print this help (also: -h, --help)"))
+      ( command "bump" (info (Options <$> bumpParser <*> colorOption) (progDesc "Update stack*.yaml files (optionally specify files)"))
+     <> command "dry-run" (info (Options <$> dryRunParser <*> colorOption) (progDesc "Show what would be updated (default, optionally specify files)"))
+     <> command "update" (info (Options <$> pure Update <*> colorOption) (progDesc "Update stackage snapshots database"))
+     <> command "info" (info (Options <$> pure Info <*> colorOption) (progDesc "Print GHC version to snapshot mapping"))
+     <> command "config" (info (Options <$> configParser <*> colorOption) (progDesc "Configure stacker"))
+     <> command "version" (info (Options <$> pure Version <*> colorOption) (progDesc "Print version information (also: -V, --version)"))
+     <> command "numeric-version" (info (Options <$> pure NumericVersion <*> colorOption) (progDesc "Print version number (also: --numeric-version)"))
+     <> command "license" (info (Options <$> pure PrintLicense <*> colorOption) (progDesc "Print license text (also: --license)"))
+     <> command "help" (info (Options <$> pure Help <*> colorOption) (progDesc "Print this help (also: -h, --help)"))
       )
     
     -- Top level parsing (for flags and default)
@@ -55,9 +60,6 @@ optionsParser =
       <|> flag' PrintLicense (long "license" <> help "Print license text")
       <|> flag' Help (long "help" <> short 'h' <> help "Print help")
       <|> pure (DryRun [])
-    
-    -- Local color option (same as global, since it has a default)
-    colorOptionLocal = colorOption
 
 -- | Config command parser
 configParser :: Parser Command
