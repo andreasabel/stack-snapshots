@@ -42,7 +42,7 @@ findStackYamlFilesRecursive = findStackYamlFilesInDir "."
 findStackYamlFilesInDir :: FilePath -> IO [FilePath]
 findStackYamlFilesInDir dir = do
   entries <- listDirectory dir
-  -- Use custom </> to ensure consistent paths across all OSs
+  -- Use custom </> to ensure consistent path output with "/" separator on all platforms
   let fullPaths = map (dir </>) entries
   
   -- Process files and directories separately
