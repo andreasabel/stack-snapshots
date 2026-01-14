@@ -40,7 +40,7 @@ data-files:
 
 source-repository head
   type: git
-  location: https://github.com/andreasabel/stack-snapshots.git
+  location: https://github.com/andreasabel/stacker.git
 
 common warnings
   ghc-options:
