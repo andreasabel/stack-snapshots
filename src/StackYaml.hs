@@ -77,22 +77,29 @@ getSymlinkMap files = do
       -- Normalize and collapse .. components
       let normalizedTarget = collapseDotDots $ normalise targetPath
       let relativeTarget = makeRelative "." normalizedTarget
+      -- Try both with and without ./ prefix to match the files list
+      let withPrefix = if "./" `isPrefixOf` relativeTarget
+                       then relativeTarget
+                       else "./" ++ relativeTarget
+      let finalTarget = if withPrefix `elem` files
+                        then withPrefix
+                        else relativeTarget
       -- Check if the target is in our file list
-      if relativeTarget `elem` files
-        then return $ Just (link, relativeTarget)
+      if finalTarget `elem` files
+        then return $ Just (link, finalTarget)
         else return Nothing
     
     -- Collapse .. components in a path
     collapseDotDots :: FilePath -> FilePath
     collapseDotDots path =
       let dirs = splitDirectories path
-          collapsed = foldr collapseDir [] dirs
+          collapsed = foldl collapseDir [] dirs
       in joinPath collapsed
     
-    collapseDir :: String -> [String] -> [String]
-    collapseDir "." rest = rest
-    collapseDir ".." (dir:rest) | dir /= ".." = rest
-    collapseDir dir rest = dir : rest
+    collapseDir :: [String] -> String -> [String]
+    collapseDir acc "." = acc
+    collapseDir (dir:rest) ".." | dir /= ".." = rest
+    collapseDir acc dir = acc ++ [dir]
 
 -- | Parse a stack.yaml file to extract the snapshot field
 parseStackYaml :: FilePath -> IO (Maybe (Text, Bool, (Int, Int)))
