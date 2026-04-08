@@ -1,1 +1,3 @@
 branches: master
+-- Haskell-CI does not checkout symlinks correctly, so the tests fail.
+tests: False
