@@ -60,7 +60,7 @@ Updating stack-9.12.yaml
 | `bump [FILES...]`    | Updates FILES (all `stack*.yaml` files if none specified)                        |
 | `dry-run [FILES...]` | Shows what updates would be performed by the respective `bump` (default command) |
 | `config`             | Configures `stacker`                                                             |
-| `update`             | Updates its database of stackage snapshots                                       |
+| `update`             | Updates its database of Stackage snapshots                                       |
 | `info`               | Prints table mapping GHC major versions to their latest snapshots                |
 
 These can be modified with the following option(s):
@@ -202,7 +202,7 @@ https://github.com/commercialhaskell/stackage-snapshots .
 If you have a clone of this repository already, you might want to configure `stacker` to use it
 so it does not make its own clone (which takes ~2GB of disk space).
 
-By default, `stacker` stores information about the stackage snapshots
+By default, `stacker` stores information about the Stackage snapshots
 in its XDG-conform application directory (`$XDG_STATE_HOME/stacker`),
 by creating a shallow git clone of said repository there
 (typically `$XDG_STATE_HOME/stacker/stackage-snapshots`).
