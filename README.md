@@ -2,19 +2,19 @@
 
 Bump snapshots (aka resolvers) in `stack*.yaml` files.
 
-The `stacker` tools goes through the given fiels (or all `stack*.yaml` files in the current directory),
+The `stacker` tools goes through the given files (or all `stack*.yaml` files in the current directory),
 inspects the value of the `snapshot:` (or `resolver:`) field and upgrades it in the following way:
 
 1. If the value is pointing to a LTS snapshot, e.g., `lts-24.10`,
    it will bump it to the latest version of this LTS
-   (at the time of writing this is `lts-24.23`).
+   (at the time of writing this is `lts-24.36`).
 
 2. If the value is pointing to a nightly release and this nightly
    belongs to a GHC major version for which an LTS exists,
    it will bump it to the latest LTS for this GHC version.
    For instance, `nightly-2024-12-15` is for GHC 9.10.1,
    but there is LTS series 24 for GHC 9.10,
-   so the snapshot will be bumped to `lts-24.23`,
+   so the snapshot will be bumped to `lts-24.36`,
    the latest of the LTS series 24.
 
 3. If the value is pointing to a nightly release for a GHC major version
@@ -22,8 +22,34 @@ inspects the value of the `snapshot:` (or `resolver:`) field and upgrades it in 
    for this GHC major version.
    For instance, snapshot `nightly-2025-10-10` is for GHC 9.12.2,
    and there is no LTS series for GHC 9.12 yet (at the time of writing),
-   so the snapshot value will be bumped to `nightly-2025-12-09`,
+   so the snapshot value will be bumped to `nightly-2026-04-01`,
    the latest nightly (at the time of writing this).
+
+## Example
+
+```
+$ stacker
+
+stack-8.10.yaml     lts-18.28                ✓ up to date
+stack-8.2.yaml      lts-11.22                ✓ up to date
+stack-8.4.yaml      lts-12.26                ✓ up to date
+stack-8.6.yaml      lts-14.27                ✓ up to date
+stack-8.8.yaml      lts-16.31                ✓ up to date
+stack-9.0.yaml      lts-19.33                ✓ up to date
+stack-9.10.yaml     lts-24.28                → bump to lts-24.36
+stack-9.12.yaml     nightly-2025-10-14       → bump to nightly-2026-04-01
+stack-9.2.yaml      lts-20.26                ✓ up to date
+stack-9.4.yaml      lts-21.25                ✓ up to date
+stack-9.6.yaml      lts-22.44                ✓ up to date
+stack-9.8.yaml      lts-23.28                ✓ up to date
+stack.yaml          nightly-2025-10-14       = symlink to stack-9.12.yaml
+```
+```
+$ stacker bump
+
+Updating stack-9.10.yaml
+Updating stack-9.12.yaml
+```
 
 ## Synopsis
 
@@ -107,8 +133,8 @@ whenever the program is invoked and they do not exist there yet.
    9.6.6,lts-22.43
    9.6.7,lts-22.44
    ...
-   9.10.3,lts-24.23
-   9.12.2,nightly-2025-12-09
+   9.10.3,lts-24.36
+   9.12.4,nightly-2026-04-01
    ```
 
 These data files determine the results of `bump` (and its preview by `dry-run`).
@@ -160,8 +186,8 @@ stack-9.2.yaml    lts-20.26            ✓ up to date
 stack-9.4.yaml    lts-21.25            ✓ up to date
 stack-9.6.yaml    lts-22.43            → bump to lts-22.44
 stack-9.8.yaml    lts-23.1             → bump to lts-23.28
-stack-9.10.yaml   nightly-2024-07-07   → bump to lts-24.23
-stack-9.12.yaml   nightly-2025-10-03   → bump to nightly-2025-12-09
+stack-9.10.yaml   nightly-2024-07-07   → bump to lts-24.36
+stack-9.12.yaml   nightly-2025-10-03   → bump to nightly-2026-04-01
 ```
 When coloring is on, the `stack*.yml` column is printed in bold, `✓ up to date` in green and any bump action in bright yellow.
 
@@ -225,8 +251,8 @@ The `update` command then regenerates then three files `lts.csv`, `nightly.csv` 
      9.4.8: lts-21.25
      9.6.7: lts-22.44
      9.8.4: lts-23.28
-     9.10.3: lts-24.23
-     9.12.2: nightly-2025-12-09
+     9.10.3: lts-24.36
+     9.12.4: nightly-2026-04-01
    ```
 
 ## Testing
